@@ -1,0 +1,32 @@
+[package]
+name = "rs-server-starter"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.74"
+authors = ["ICHINOSE Shogo"]
+description = "A Rust implementation of Server::Starter (start_server), a superdaemon for hot-deploying server programs."
+license = "MIT"
+repository = "https://github.com/shogo82148/rs-server-starter"
+readme = "README.md"
+keywords = ["server-starter", "start_server", "superdaemon", "hot-deploy", "graceful"]
+categories = ["command-line-utilities", "network-programming"]
+
+[lib]
+name = "server_starter"
+path = "src/lib.rs"
+
+[[bin]]
+name = "start_server"
+path = "src/main.rs"
+
+[dependencies]
+libc = "0.2"
+nix = { version = "0.29", features = ["signal", "process", "poll", "fs"] }
+socket2 = { version = "0.5", features = ["all"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+lto = true
+strip = true
