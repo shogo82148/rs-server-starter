@@ -1,0 +1,111 @@
+name: Build single binary
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  TARGET: x86_64-unknown-linux-musl
+  BINARY_NAME: start_server-x86_64-unknown-linux-musl
+
+jobs:
+  build:
+    name: Linux x86_64 static binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ env.TARGET }}
+
+      - name: Install musl linker
+        run: sudo apt-get update && sudo apt-get install --yes musl-tools
+
+      - name: Build release binary
+        run: cargo build --locked --release --bin start_server --target "${TARGET}"
+
+      - name: Prepare binary
+        run: |
+          cp "target/${TARGET}/release/start_server" "${BINARY_NAME}"
+          chmod 755 "${BINARY_NAME}"
+
+      - name: Verify binary
+        run: |
+          if readelf -d "${BINARY_NAME}" | grep -q NEEDED; then
+            echo "${BINARY_NAME} has dynamic library dependencies" >&2
+            exit 1
+          fi
+          "./${BINARY_NAME}" --version
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.BINARY_NAME }}
+          path: ${{ env.BINARY_NAME }}
+          archive: false
+          if-no-files-found: error
+
+      - name: Upload GitHub Release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          files: ${{ env.BINARY_NAME }}
+          generate_release_notes: true
+
+  build-macos:
+    name: macOS universal binary
+    runs-on: macos-latest
+    env:
+      BINARY_NAME: start_server-macos-universal
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - name: Build release binaries
+        run: |
+          cargo build --locked --release --bin start_server --target x86_64-apple-darwin
+          cargo build --locked --release --bin start_server --target aarch64-apple-darwin
+
+      - name: Create universal binary
+        run: |
+          lipo -create \
+            target/x86_64-apple-darwin/release/start_server \
+            target/aarch64-apple-darwin/release/start_server \
+            -output "${BINARY_NAME}"
+          chmod 755 "${BINARY_NAME}"
+
+      - name: Verify binary
+        run: |
+          test "$(lipo -archs "${BINARY_NAME}")" = "x86_64 arm64"
+          "./${BINARY_NAME}" --version
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.BINARY_NAME }}
+          path: ${{ env.BINARY_NAME }}
+          archive: false
+          if-no-files-found: error
+
+      - name: Upload GitHub Release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          files: ${{ env.BINARY_NAME }}
+          generate_release_notes: true

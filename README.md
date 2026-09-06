@@ -29,6 +29,13 @@ cargo install rs-server-starter
 
 This installs the `start_server` binary.
 
+### Prebuilt binaries
+
+The **Build single binary** GitHub Actions workflow can be run manually to
+produce a self-contained Linux x86_64 binary and a universal macOS binary for
+both Intel and Apple Silicon Macs. Push a tag such as `v0.1.0` to also create a
+GitHub Release and attach both binaries to it.
+
 ## Quick start
 
 Launch any server program under `start_server`, telling it which ports to bind:
