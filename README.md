@@ -32,9 +32,9 @@ This installs the `start_server` binary.
 ### Prebuilt binaries
 
 The **Build single binary** GitHub Actions workflow can be run manually to
-produce a self-contained Linux x86_64 binary and a universal macOS binary for
-both Intel and Apple Silicon Macs. Push a tag such as `v0.1.0` to also create a
-GitHub Release and attach both binaries to it.
+produce self-contained Linux binaries for x86_64 and arm64, and a universal
+macOS binary for both Intel and Apple Silicon Macs. Push a tag such as `v0.1.0`
+to also create a GitHub Release and attach all binaries to it.
 
 ## Quick start
 

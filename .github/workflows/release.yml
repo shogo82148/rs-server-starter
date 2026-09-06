@@ -11,13 +11,26 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  TARGET: x86_64-unknown-linux-musl
-  BINARY_NAME: start_server-x86_64-unknown-linux-musl
 
 jobs:
   build:
-    name: Linux x86_64 static binary
-    runs-on: ubuntu-latest
+    name: Linux ${{ matrix.arch }} static binary
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            binary: start_server-x86_64-unknown-linux-musl
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            binary: start_server-aarch64-unknown-linux-musl
+    env:
+      TARGET: ${{ matrix.target }}
+      BINARY_NAME: ${{ matrix.binary }}
 
     steps:
       - name: Check out repository
