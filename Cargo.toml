@@ -22,7 +22,7 @@ path = "src/main.rs"
 [dependencies]
 libc = "0.2"
 nix = { version = "0.31", features = ["signal", "process", "poll", "fs"] }
-socket2 = { version = "0.5", features = ["all"] }
+socket2 = { version = "0.6", features = ["all"] }
 
 [dev-dependencies]
 tempfile = "3"
