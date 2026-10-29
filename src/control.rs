@@ -21,6 +21,15 @@ fn read_pid(path: &str) -> io::Result<Pid> {
             "pid file does not contain a pid",
         )
     })?;
+    // Reject non-positive pids: kill() interprets 0, -1, and -N as a
+    // process-group or broadcast target rather than a single process, so a
+    // stale or attacker-controlled pid file must never reach the signal sink.
+    if pid <= 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("pid file contains an invalid pid: {pid}"),
+        ));
+    }
     Ok(Pid::from_raw(pid))
 }
 
